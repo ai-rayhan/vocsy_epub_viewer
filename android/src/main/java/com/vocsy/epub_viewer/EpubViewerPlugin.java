@@ -13,10 +13,11 @@ import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
+import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 
 import androidx.annotation.NonNull;
 
-public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware {
+public class EpubViewerPlugin implements FlutterPlugin, ActivityAware, MethodCallHandler {
 
     private Reader reader;
     private ReaderConfig config;
@@ -40,7 +41,7 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             public void onListen(Object o, EventChannel.EventSink eventSink) {
                 sink = eventSink;
                 if (sink == null) {
-                    Log.i("empty", "Sink is empty");
+                    Log.i("EpubViewerPlugin", "EventSink is null");
                 }
             }
 
@@ -57,8 +58,12 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-        channel.setMethodCallHandler(null);
-        eventChannel.setStreamHandler(null);
+        if (channel != null) {
+            channel.setMethodCallHandler(null);
+        }
+        if (eventChannel != null) {
+            eventChannel.setStreamHandler(null);
+        }
         messenger = null;
         context = null;
     }
@@ -91,7 +96,11 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             Boolean nightMode = Boolean.parseBoolean(arguments.get("nightMode").toString());
             Boolean allowSharing = Boolean.parseBoolean(arguments.get("allowSharing").toString());
             Boolean enableTts = Boolean.parseBoolean(arguments.get("enableTts").toString());
-            config = new ReaderConfig(context, identifier, themeColor, scrollDirection, allowSharing, enableTts, nightMode);
+
+            config = new ReaderConfig(context, identifier, themeColor, scrollDirection,
+                    allowSharing, enableTts, nightMode);
+
+            result.success(null);
 
         } else if (call.method.equals("open")) {
             Map<String, Object> arguments = (Map<String, Object>) call.arguments;
@@ -101,10 +110,14 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             reader = new Reader(context, messenger, config, sink);
             reader.open(bookPath, lastLocation);
 
+            result.success(null);
+
         } else if (call.method.equals("close")) {
             if (reader != null) {
                 reader.close();
             }
+            result.success(null);
+
         } else {
             result.notImplemented();
         }
