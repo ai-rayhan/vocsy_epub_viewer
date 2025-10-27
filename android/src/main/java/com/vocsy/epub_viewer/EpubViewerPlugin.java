@@ -13,11 +13,10 @@ import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 
 import androidx.annotation.NonNull;
 
-public class EpubViewerPlugin implements FlutterPlugin, ActivityAware, MethodCallHandler {
+public class EpubViewerPlugin implements FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware {
 
     private Reader reader;
     private ReaderConfig config;
@@ -41,7 +40,7 @@ public class EpubViewerPlugin implements FlutterPlugin, ActivityAware, MethodCal
             public void onListen(Object o, EventChannel.EventSink eventSink) {
                 sink = eventSink;
                 if (sink == null) {
-                    Log.i("EpubViewerPlugin", "EventSink is null");
+                    Log.i("empty", "Sink is empty");
                 }
             }
 
@@ -58,12 +57,8 @@ public class EpubViewerPlugin implements FlutterPlugin, ActivityAware, MethodCal
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-        if (channel != null) {
-            channel.setMethodCallHandler(null);
-        }
-        if (eventChannel != null) {
-            eventChannel.setStreamHandler(null);
-        }
+        channel.setMethodCallHandler(null);
+        eventChannel.setStreamHandler(null);
         messenger = null;
         context = null;
     }
@@ -96,9 +91,7 @@ public class EpubViewerPlugin implements FlutterPlugin, ActivityAware, MethodCal
             Boolean nightMode = Boolean.parseBoolean(arguments.get("nightMode").toString());
             Boolean allowSharing = Boolean.parseBoolean(arguments.get("allowSharing").toString());
             Boolean enableTts = Boolean.parseBoolean(arguments.get("enableTts").toString());
-
-            config = new ReaderConfig(context, identifier, themeColor, scrollDirection,
-                    allowSharing, enableTts, nightMode);
+            config = new ReaderConfig(context, identifier, themeColor, scrollDirection, allowSharing, enableTts, nightMode);
 
             result.success(null);
 
